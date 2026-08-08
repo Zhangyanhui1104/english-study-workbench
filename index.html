@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>每日英语学习工作台</title>
+<style>
+  :root{
+    --primary:#4F6DF5; --primary-soft:#EDF0FE; --primary-dark:#3B52CC;
+    --success:#16A34A; --success-soft:#EAF7EF;
+    --warn:#EA8A00; --warn-soft:#FFF4E3;
+    --danger:#E5484D; --danger-soft:#FDECED;
+    --ink:#1F2430; --ink-2:#5A6272; --ink-3:#8A93A6;
+    --bg:#F4F6FB; --card:#FFFFFF; --line:#E7EAF3;
+    --radius:16px; --shadow:0 1px 3px rgba(31,36,48,.06),0 8px 24px -12px rgba(31,36,48,.12);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
+  input,textarea,select{font-family:inherit;font-size:16px;color:var(--ink)}
+  svg{display:block}
+
+  /* ===== Header ===== */
+  .header{background:linear-gradient(135deg,#4F6DF5 0%,#6C5CE7 100%);color:#fff;padding:26px 20px 22px}
+  .header-inner{max-width:960px;margin:0 auto}
+  .header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-logo{width:44px;height:44px;background:rgba(255,255,255,.16);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .brand-logo svg{width:24px;height:24px}
+  .brand h1{font-size:20px;font-weight:700;letter-spacing:.5px}
+  .brand p{font-size:12.5px;opacity:.85;margin-top:1px}
+  .tools{display:flex;gap:8px;flex-wrap:wrap}
+  .tool-btn{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:13.5px;font-weight:600;transition:background .2s}
+  .tool-btn:hover{background:rgba(255,255,255,.24)}
+  .tool-btn svg{width:17px;height:17px}
+  .tool-btn.danger{background:rgba(229,72,77,.32)}
+  .today-strip{max-width:960px;margin:16px auto 0;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .today-strip .ts-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .today-strip .ts-icon svg{width:20px;height:20px}
+  .today-strip .ts-main{flex:1;min-width:180px}
+  .today-strip .ts-title{font-size:14px;font-weight:700}
+  .today-strip .ts-sub{font-size:12px;opacity:.85}
+  .ts-actions{display:flex;gap:8px}
+
+  /* ===== Layout ===== */
+  .wrap{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 20px 0}
+  .card-title{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700}
+  .card-title .ci{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .card-title .ci svg{width:18px;height:18px}
+  .card-title small{font-size:12px;font-weight:500;color:var(--ink-3);margin-left:2px}
+  .card-body{padding:16px 20px 20px}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+  .badge svg{width:12px;height:12px}
+
+  /* ===== 今日要处理 ===== */
+  .todo-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#fff}
+  .todo-item:last-child{margin-bottom:0}
+  .todo-item .t-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .todo-item .t-icon svg{width:19px;height:19px}
+  .todo-item .t-main{flex:1;min-width:0}
+  .todo-item .t-title{font-size:14px;font-weight:700}
+  .todo-item .t-sub{font-size:12.5px;color:var(--ink-3)}
+  .todo-item.overdue{border-color:#F5C2C4;background:var(--danger-soft)}
+  .todo-item.overdue .t-title{color:var(--danger)}
+  .t-go{display:inline-flex;align-items:center;gap:5px;height:40px;padding:0 14px;border-radius:9px;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;transition:opacity .2s}
+  .t-go:hover{opacity:.85}
+  .t-go svg{width:15px;height:15px}
+  .all-done{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;text-align:center}
+  .all-done .ad-icon{width:52px;height:52px;border-radius:50%;background:var(--success-soft);display:flex;align-items:center;justify-content:center}
+  .all-done .ad-icon svg{width:26px;height:26px;color:var(--success)}
+  .all-done b{font-size:15px}
+  .all-done span{font-size:13px;color:var(--ink-3)}
+
+  /* ===== 主题 ===== */
+  .theme-hero{border:1px solid var(--line);border-radius:14px;padding:18px;background:linear-gradient(160deg,#F8FAFF,#fff)}
+  .theme-tag-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .theme-name{font-size:22px;font-weight:800}
+  .theme-desc{font-size:13.5px;color:var(--ink-2);margin-bottom:12px}
+  .theme-words{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .word-chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--primary-dark);background:var(--primary-soft);padding:5px 12px;border-radius:999px}
+  .word-chip svg{width:12px;height:12px}
+  .theme-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 18px;border-radius:10px;font-size:14px;font-weight:700;transition:filter .2s,transform .05s}
+  .btn:active{transform:scale(.97)}
+  .btn svg{width:17px;height:17px}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-soft{background:var(--primary-soft);color:var(--primary-dark)}
+  .btn-soft:hover{background:#E2E7FD}
+  .btn-outline{background:#fff;color:var(--ink-2);border:1px solid var(--line)}
+  .btn-outline:hover{background:#F7F8FC}
+  .btn-success{background:var(--success);color:#fff}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-ghost{background:#fff;color:var(--ink-2);border:1px solid var(--line);height:40px;font-size:13px;font-weight:600}
+
+  /* ===== 单词 ===== */
+  .word-item{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;background:#fff;transition:border-color .2s}
+  .word-item:last-child{margin-bottom:0}
+  .word-item.done{border-color:#BFE3CD;background:#FBFFFD}
+  .word-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .word{font-size:21px;font-weight:800;letter-spacing:.3px}
+  .word-phonetic{font-size:14px;color:var(--ink-3);font-style:italic}
+  .word-pos{font-size:12px;font-weight:700;color:var(--primary-dark);background:var(--primary-soft);padding:2px 9px;border-radius:6px}
+  .word-cn{font-size:14.5px;color:var(--ink-2);margin:8px 0 4px;font-weight:600}
+  .word-en{font-size:13px;color:var(--ink-3);line-height:1.7}
+  .word-ex{margin-top:10px;background:#F8FAFF;border-radius:10px;padding:10px 12px}
+  .word-ex .ex{font-size:13.5px;line-height:1.75}
+  .word-ex .ex + .ex{margin-top:6px}
+  .ex-en{color:var(--ink)}
+  .ex-cn{color:var(--ink-3);font-size:12.5px;display:block;margin-top:1px}
+  .word-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .status-badge{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px}
+  .status-badge svg{width:13px;height:13px}
+  .st-new{background:#F1F3F9;color:var(--ink-3)}
+  .st-learning{background:var(--warn-soft);color:var(--warn)}
+  .st-mastered{background:var(--success-soft);color:var(--success)}
+  .word-ops{display:flex;gap:8px}
+  .mini-btn{display:inline-flex;align-items:center;gap:5px;height:40px;padding:0 12px;border-radius:9px;font-size:12.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink-2);transition:all .15s}
+  .mini-btn svg{width:14px;height:14px}
+  .mini-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .mini-btn.ok:hover{border-color:var(--success);color:var(--success);background:var(--success-soft)}
+  .word-count{font-size:13px;color:var(--ink-3);font-weight:600}
+
+  /* ===== 观点表达 ===== */
+  .topic-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 15px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--ink-2)}
+  .tab svg{width:15px;height:15px}
+  .tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+  .tab.late{color:var(--danger);border-color:#F5C2C4}
+  .tab.late.active{background:var(--danger);border-color:var(--danger);color:#fff}
+  .q-card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#FBFCFE}
+  .q-card .q-num{font-size:12px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:4px}
+  .q-card .q-text{font-size:15px;font-weight:700;line-height:1.6}
+  .struc-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+  .struc-cell{border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;background:#fff}
+  .struc-cell .s-step{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--primary)}
+  .struc-cell .s-en{font-size:11.5px;color:var(--ink-3)}
+  .struc-cell.arrow{display:flex;align-items:center;justify-content:center;border:none;background:none;color:var(--ink-3);padding:0}
+  .struc-cell.arrow svg{width:18px;height:18px}
+  .field{margin-bottom:14px}
+  .field label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;margin-bottom:7px}
+  .field label svg{width:15px;height:15px;color:var(--primary)}
+  .field .hint{font-size:12px;color:var(--ink-3);margin-left:auto;font-weight:500}
+  textarea{width:100%;min-height:88px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;line-height:1.7;background:#fff;transition:border-color .2s}
+  textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+  .submit-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .filled-note{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--success)}
+
+  /* ===== 进度 ===== */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+  .stat .s-num{font-size:24px;font-weight:800;line-height:1.2}
+  .stat .s-label{font-size:12px;color:var(--ink-3);font-weight:600;margin-top:3px}
+  .stat .s-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+  .stat .s-ico svg{width:16px;height:16px}
+  .prog-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;margin-bottom:18px}
+  .ring-wrap{position:relative;width:112px;height:112px;flex-shrink:0}
+  .ring-wrap svg{width:112px;height:112px;transform:rotate(-90deg)}
+  .ring-bg{fill:none;stroke:#EFF1F8;stroke-width:10}
+  .ring-fg{fill:none;stroke:var(--primary);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-center b{font-size:22px;font-weight:800}
+  .ring-center span{font-size:10.5px;color:var(--ink-3);font-weight:600}
+  .prog-detail{flex:1;min-width:220px}
+  .prog-line{margin-bottom:12px}
+  .prog-line:last-child{margin-bottom:0}
+  .prog-line .pl-head{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:5px}
+  .prog-line .pl-head .pct{color:var(--primary);font-weight:800}
+  .pbar{height:8px;background:#EFF1F8;border-radius:99px;overflow:hidden}
+  .pbar i{display:block;height:100%;background:linear-gradient(90deg,#4F6DF5,#6C5CE7);border-radius:99px;transition:width .5s ease}
+  .heat-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .heat{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .heat .h-label{font-size:10.5px;color:var(--ink-3);font-weight:600}
+  .heat .h-cell{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+  .heat .h-cell.off{background:#EEF0F7;color:var(--ink-3)}
+  .history-list{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .his-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:#fff}
+  .his-row:last-child{border-bottom:none}
+  .his-date{font-size:12px;font-weight:700;color:var(--ink-3);width:88px;flex-shrink:0}
+  .his-theme{font-size:13.5px;font-weight:700;flex:1}
+  .his-theme small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:500}
+  .his-words{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+  .his-status{flex-shrink:0}
+  .empty-tip{text-align:center;padding:26px 16px;color:var(--ink-3);font-size:13.5px}
+
+  /* ===== Toast & Modal ===== */
+  .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:#22283A;color:#fff;font-size:13.5px;font-weight:600;padding:11px 20px;border-radius:10px;z-index:99;transition:transform .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:88vw;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .mask{position:fixed;inset:0;background:rgba(20,24,38,.45);z-index:90;display:none;align-items:center;justify-content:center;padding:20px}
+  .mask.show{display:flex}
+  .modal{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.22);max-height:86vh;overflow-y:auto}
+  .modal h3{display:flex;align-items:center;gap:9px;font-size:16.5px;margin-bottom:6px}
+  .modal h3 svg{width:19px;height:19px;color:var(--primary)}
+  .modal .m-desc{font-size:13px;color:var(--ink-3);margin-bottom:16px}
+  .modal .m-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .radio-pill{display:inline-flex;align-items:center;gap:7px;height:44px;padding:0 15px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;font-weight:600;background:#fff}
+  .radio-pill input{width:16px;height:16px;accent-color:var(--primary)}
+  .radio-pill.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-dark)}
+  .sel-wrap{position:relative;flex:1;min-width:150px}
+  .sel-wrap select{width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 34px 0 12px;background:#fff;appearance:none;-webkit-appearance:none;font-size:15px;font-weight:600}
+  .sel-wrap svg{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;pointer-events:none;color:var(--ink-3)}
+  .m-actions{display:flex;gap:10px;margin-top:18px}
+  .m-actions .btn{flex:1}
+  .m-warn{background:var(--danger-soft);border:1px solid #F5C2C4;color:var(--danger);font-size:13px;font-weight:600;border-radius:10px;padding:12px 14px;display:flex;gap:9px;align-items:flex-start}
+  .m-warn svg{width:16px;height:16px;flex-shrink:0;margin-top:2px}
+  .danger-zone{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+  .danger-zone h4{font-size:13.5px;font-weight:700;margin-bottom:4px}
+  .danger-zone p{font-size:12.5px;color:var(--ink-3);margin-bottom:10px}
+
+  .footer{text-align:center;font-size:12px;color:var(--ink-3);padding:8px 16px 20px}
+
+  /* ===== 响应式 ===== */
+  @media (max-width:768px){
+    .header{padding:20px 16px 18px}
+    .brand h1{font-size:18px}
+    .stat-grid{grid-template-columns:repeat(2,1fr)}
+    .prog-row{flex-direction:column;align-items:flex-start}
+    .ring-wrap{align-self:center}
+    .struc-bar{grid-template-columns:1fr}
+    .struc-cell.arrow{display:none}
+    .theme-name{font-size:19px}
+    .card-head{padding:16px 16px 0}
+    .card-body{padding:14px 16px 18px}
+    .his-words{display:none}
+    .t-go{height:44px}
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-logo" id="brandLogo"></div>
+        <div>
+          <h1>每日英语学习工作台</h1>
+          <p id="headerDate"></p>
+        </div>
+      </div>
+      <div class="tools">
+        <button class="tool-btn" id="btnExport" title="导出 JSON 备份"><span id="icExport"></span>导出备份</button>
+        <button class="tool-btn" id="btnImport" title="从 JSON 恢复"><span id="icImport"></span>导入恢复</button>
+        <input type="file" id="fileImport" accept="application/json,.json" style="display:none">
+        <button class="tool-btn danger" id="btnClearSample" title="移除预置示例数据"><span id="icErase"></span>清空示例</button>
+      </div>
+    </div>
+    <div class="today-strip">
+      <div class="ts-icon" id="tsIcon"></div>
+      <div class="ts-main">
+        <div class="ts-title" id="tsTitle"></div>
+        <div class="ts-sub" id="tsSub"></div>
+      </div>
+      <div class="ts-actions">
+        <button class="btn btn-primary" id="btnGoToday" style="height:40px;font-size:13px;padding:0 16px"><span id="icPlay"></span>开始学习</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 今日要处理 -->
+  <section class="card" id="todayCard">
+    <div class="card-head">
+      <div class="card-title"><span class="ci" style="background:var(--danger-soft);color:var(--danger)" id="todayIcon"></span>今天要处理</div>
+      <span class="badge" id="todayBadge" style="background:#F1F3F9;color:var(--ink-3)">加载中</span>
+    </div>
+    <div class="card-body" id="todayList"></div>
+  </section>
+
+  <!-- 主题化学习 -->
+  <section class="card" id="themeCard">
+    <div class="card-head">
+      <div class="card-title"><span class="ci" style="background:var(--primary-soft);color:var(--primary)" id="themeIcon"></span>今日主题<small>主题化学习</small></div>
+      <button class="btn-ghost" id="btnThemeSet" style="height:40px"><span id="icGear"></span>主题设置</button>
+    </div>
+    <div class="card-body" id="themeBody"></div>
+  </section>
+
+  <!-- 每日单词 -->
+  <section class="card" id="wordCard">
+    <div class="card-head">
+      <div class="card-title"><span class="ci" style="background:var(--success-soft);color:var(--success)" id="wordIcon"></span>每日单词<small>今日 5 词 · 与主题联动</small></div>
+      <span class="word-count" id="wordCount"></span>
+    </div>
+    <div class="card-body" id="wordList"></div>
+  </section>
+
+  <!-- 观点表达 -->
+  <section class="card" id="speakCard">
+    <div class="card-head">
+      <div class="card-title"><span class="ci" style="background:var(--warn-soft);color:var(--warn)" id="speakIcon"></span>观点表达练习<small>观点 → 理由 → 例子</small></div>
+    </div>
+    <div class="card-body" id="speakBody"></div>
+  </section>
+
+  <!-- 反馈与跟踪 -->
+  <section class="card" id="progCard">
+    <div class="card-head">
+      <div class="card-title"><span class="ci" style="background:#F3E8FF;color:#9333EA" id="progIcon"></span>学习进度<small>反馈与跟踪</small></div>
+    </div>
+    <div class="card-body" id="progBody"></div>
+  </section>
+
+  <div class="footer">数据保存在浏览器本地（localStorage）· 建议每周导出备份一次 · 单文件离线可用</div>
+</main>
+
+<!-- 主题设置 Modal -->
+<div class="mask" id="maskTheme">
+  <div class="modal">
+    <h3><span id="mGear"></span>主题轮换设置</h3>
+    <p class="m-desc">每日主题与当日单词联动。自动轮换会按「生活 → 工作 → 哲理 → 时间」循环；也可固定一个主题持续学习。</p>
+    <div class="m-row">
+      <label class="radio-pill active" id="pillAuto"><input type="radio" name="rot" value="auto">自动轮换</label>
+      <label class="radio-pill" id="pillManual"><input type="radio" name="rot" value="manual">固定主题</label>
+    </div>
+    <div class="m-row" id="themeSelRow" style="display:none">
+      <div class="sel-wrap">
+        <select id="selTheme"></select>
+        <span id="icChev"></span>
+      </div>
+    </div>
+    <div class="m-actions">
+      <button class="btn btn-soft" id="btnThemeCancel">取消</button>
+      <button class="btn btn-primary" id="btnThemeSave">保存设置</button>
+    </div>
+    <div class="danger-zone">
+      <h4>数据管理</h4>
+      <p>清空全部学习数据将重置所有记录（无法撤销，请先导出备份）。</p>
+      <button class="btn btn-outline" id="btnWipe" style="height:40px;font-size:13px"><span id="icTrash"></span>清空全部数据</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认 Modal -->
+<div class="mask" id="maskConfirm">
+  <div class="modal">
+    <h3><span id="cfIcon"></span>操作确认</h3>
+    <div class="m-warn" id="cfWarn"></div>
+    <p style="font-size:13px;color:var(--ink-2);margin-top:12px" id="cfDesc"></p>
+    <div class="m-actions">
+      <button class="btn btn-soft" id="cfCancel">取消</button>
+      <button class="btn btn-danger" id="cfOk">确认执行</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+ * 每日英语学习工作台 · 单文件 · 全内联 · localStorage 持久化
+ * ============================================================ */
+'use strict';
+
+/* ---------- 内联 SVG 图标（无 emoji） ---------- */
+const ICONS = {
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  zap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+  download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  briefcase:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+  compass:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+  hourglass:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v4l-5 6 5 6v4H6v-4l5-6-5-6z"/><line x1="7" y1="2" x2="17" y2="2"/><line x1="7" y1="22" x2="17" y2="22"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  trending:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  award:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>',
+  refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+};
+function icon(name){ return ICONS[name] || ICONS.star; }
+function mount(sel, name){ const el = document.getElementById(sel); if(el) el.innerHTML = icon(name); }
+[['brandLogo','book'],['icExport','download'],['icImport','upload'],['icErase','trash'],['icPlay','zap'],['icGear','gear'],['icChev','chev'],['icTrash','trash'],['mGear','gear']].forEach(p=>mount(p[0],p[1]));
+
+/* ---------- 单词库（40 词 × 4 主题，每词 2 例句） ---------- */
+const WORDBANK = {
+  life: [
+    {w:'cozy', ph:'/ˈkəʊzi/', pos:'adj.', cn:'舒适的，温馨的', en:'warm, comfortable, and giving a feeling of relaxation or safety',
+     ex:[['We spent a cozy evening by the fireplace.','我们在壁炉旁度过了一个温馨的夜晚。'],['She bought a cozy sweater for winter.','她为冬天买了一件舒适的毛衣。']]},
+    {w:'commute', ph:'/kəˈmjuːt/', pos:'v./n.', cn:'通勤；通勤路程', en:'to travel regularly between your home and your place of work',
+     ex:[['My commute to work takes about 40 minutes.','我上班通勤大约需要 40 分钟。'],['He commutes by subway every day.','他每天乘地铁通勤。']]},
+    {w:'routine', ph:'/ruːˈtiːn/', pos:'n./adj.', cn:'常规，例行公事', en:'a usual or fixed way of doing things',
+     ex:[['Morning coffee is part of my daily routine.','早上的咖啡是我日常生活的一部分。'],['She needs a stable routine to stay productive.','她需要稳定的作息才能保持高效。']]},
+    {w:'grocery', ph:'/ˈɡrəʊsəri/', pos:'n.', cn:'食品杂货', en:'food and other goods sold at a supermarket or store',
+     ex:[['I need to do the grocery shopping this weekend.','这个周末我需要去采购食品杂货。'],['He carried two grocery bags home.','他拎着两袋杂货回家。']]},
+    {w:'breeze', ph:'/briːz/', pos:'n.', cn:'微风；轻而易举的事', en:'a gentle wind; also used to describe something very easy to do',
+     ex:[['A cool breeze blew through the open window.','一阵凉风从敞开的窗户吹进来。'],['The final exam was a breeze for her.','期末考试对她来说轻而易举。']]},
+    {w:'habit', ph:'/ˈhæbɪt/', pos:'n.', cn:'习惯', en:'something you do regularly, often without thinking about it',
+     ex:[['Reading before bed is a good habit.','睡前阅读是个好习惯。'],['He has a habit of checking his phone first thing in the morning.','他有早上醒来先看手机的习惯。']]},
+    {w:'comfort', ph:'/ˈkʌmfət/', pos:'n./v.', cn:'舒适；安慰', en:'a state of physical ease and freedom from pain or worry; to make someone feel better',
+     ex:[['She found comfort in a cup of hot tea.','她在一杯热茶中找到了安慰。'],['This sofa is designed for maximum comfort.','这款沙发以最大舒适度为目标设计。']]},
+    {w:'refresh', ph:'/rɪˈfreʃ/', pos:'v.', cn:'使恢复精力，使焕然一新', en:'to make someone feel less tired or more energetic',
+     ex:[['A short walk can refresh your mind.','短暂散步能让头脑焕然一新。'],['He refreshed himself with a cool shower.','他用冷水澡让自己恢复精神。']]},
+    {w:'gather', ph:'/ˈɡæðə/', pos:'v.', cn:'聚集；收集', en:'to come together as a group, or to collect things',
+     ex:[['Friends and family gathered to celebrate the festival.','亲友们聚在一起庆祝节日。'],['She gathered her notes before the meeting.','开会前她整理好了笔记。']]},
+    {w:'leisure', ph:'/ˈleʒə/', pos:'n.', cn:'闲暇，休闲', en:'time when you are not working and can relax or do what you like',
+     ex:[['He spends his leisure time painting.','他利用闲暇时间画画。'],['More leisure activities can help reduce stress.','多一些休闲活动有助于减压。']]}
+  ],
+  work: [
+    {w:'deadline', ph:'/ˈdedlaɪn/', pos:'n.', cn:'截止日期', en:'the latest time or date by which something must be finished',
+     ex:[['The project deadline is next Friday.','项目截止日期是下周五。'],['We worked late to meet the deadline.','为了赶在截止日期前完成，我们加班到很晚。']]},
+    {w:'collaborate', ph:'/kəˈlæbəreɪt/', pos:'v.', cn:'合作，协作', en:'to work together with someone to produce or achieve something',
+     ex:[['The two teams collaborated on the new system.','两个团队协作开发了新系统。'],['We collaborate closely with our overseas colleagues.','我们与海外同事紧密合作。']]},
+    {w:'prioritize', ph:'/praɪˈɒrətaɪz/', pos:'v.', cn:'优先处理，排序', en:'to decide which things are most important and deal with them first',
+     ex:[['Learn to prioritize your daily tasks.','学会为你每天的任务排定优先级。'],['She prioritized the urgent requests first.','她优先处理了紧急请求。']]},
+    {w:'efficient', ph:'/ɪˈfɪʃnt/', pos:'adj.', cn:'高效的', en:'working well without wasting time, money or energy',
+     ex:[['Email is an efficient way to communicate.','电子邮件是一种高效的沟通方式。'],['He found a more efficient workflow.','他找到了一种更高效的工作流程。']]},
+    {w:'feedback', ph:'/ˈfiːdbæk/', pos:'n.', cn:'反馈', en:'opinion or information about how well someone or something is doing',
+     ex:[['Please give me feedback on my report.','请对我的报告提出反馈。'],['She welcomed constructive feedback from the team.','她乐于接受团队的建设性反馈。']]},
+    {w:'negotiate', ph:'/nɪˈɡəʊʃieɪt/', pos:'v.', cn:'谈判，协商', en:'to discuss something in order to reach an agreement',
+     ex:[['We need to negotiate the contract terms.','我们需要协商合同条款。'],['He negotiated a better price for the service.','他通过谈判为这项服务争取到了更低的价格。']]},
+    {w:'delegate', ph:'/ˈdelɪɡeɪt/', pos:'v.', cn:'委派，授权', en:'to give part of your work or authority to someone else',
+     ex:[['A good manager knows how to delegate tasks.','优秀的管理者懂得如何委派任务。'],['She delegated the follow-up work to her assistant.','她把后续工作交给了助理。']]},
+    {w:'achieve', ph:'/əˈtʃiːv/', pos:'v.', cn:'实现，达成', en:'to successfully finish something or reach a goal through effort',
+     ex:[['Set small goals to achieve big results.','设定小目标来实现大成就。'],['The team achieved its sales target this quarter.','团队本季度达成了销售目标。']]},
+    {w:'multitask', ph:'/ˌmʌltiˈtɑːsk/', pos:'v.', cn:'同时处理多任务', en:'to do several things at the same time',
+     ex:[['Stop multitasking and focus on one thing.','别再一心多用了，专注做好一件事。'],['She can multitask during busy mornings.','繁忙的早晨她也能同时处理多件事。']]},
+    {w:'consistent', ph:'/kənˈsɪstənt/', pos:'adj.', cn:'始终如一的，持续的', en:'always behaving or happening in the same steady way',
+     ex:[['Consistent effort brings steady progress.','持之以恒的努力带来稳步的进步。'],['His work quality has been consistent all year.','他一整年的工作质量都保持稳定。']]}
+  ],
+  philosophy: [
+    {w:'perspective', ph:'/pəˈspektɪv/', pos:'n.', cn:'视角，观点', en:'a particular way of thinking about or looking at something',
+     ex:[['Try to see the problem from a fresh perspective.','试着从全新的视角看待这个问题。'],['Travel broadens your perspective on life.','旅行能拓宽你对人生的看法。']]},
+    {w:'wisdom', ph:'/ˈwɪzdəm/', pos:'n.', cn:'智慧', en:'the ability to make good decisions based on knowledge and experience',
+     ex:[['Experience is the mother of wisdom.','经验是智慧之母。'],['He shared his wisdom with the young team.','他把自己的智慧分享给年轻团队。']]},
+    {w:'embrace', ph:'/ɪmˈbreɪs/', pos:'v.', cn:'欣然接受；拥抱', en:'to accept something willingly and enthusiastically',
+     ex:[['Embrace change and you will grow faster.','欣然接受变化，你会成长得更快。'],['She embraced the new challenge with confidence.','她满怀信心地迎接新挑战。']]},
+    {w:'humble', ph:'/ˈhʌmbl/', pos:'adj.', cn:'谦逊的', en:'not proud; modest about your own importance or achievements',
+     ex:[['Stay humble even after great success.','即使取得巨大成功也要保持谦逊。'],['He remained humble despite his achievements.','尽管成就斐然，他依然谦逊。']]},
+    {w:'resilience', ph:'/rɪˈzɪliəns/', pos:'n.', cn:'韧性，恢复力', en:'the ability to recover quickly from difficulties or setbacks',
+     ex:[['Resilience helps you bounce back from failure.','韧性帮助你在失败后重新振作。'],['She showed great resilience during hard times.','在艰难时期她展现了强大的韧性。']]},
+    {w:'gratitude', ph:'/ˈɡrætɪtjuːd/', pos:'n.', cn:'感激，感恩', en:'the feeling of being thankful and wanting to show appreciation',
+     ex:[['Express gratitude for the small things in life.','对生活中的小事心怀感恩。'],['He wrote a letter of gratitude to his mentor.','他给导师写了一封感谢信。']]},
+    {w:'purpose', ph:'/ˈpɜːpəs/', pos:'n.', cn:'目的，意义', en:'the reason for which something exists or is done',
+     ex:[['Finding your purpose gives life direction.','找到人生目标会给生活指明方向。'],['She works with a strong sense of purpose.','她带着强烈的使命感工作。']]},
+    {w:'reflect', ph:'/rɪˈflekt/', pos:'v.', cn:'反思；反映', en:'to think carefully about something, or to show something',
+     ex:[['Take time to reflect on today\'s lessons.','花点时间反思今天的收获。'],['He reflected on his mistakes and improved quickly.','他反思了自己的错误并快速改进。']]},
+    {w:'mindful', ph:'/ˈmaɪndfl/', pos:'adj.', cn:'留心的，注意的', en:'being conscious or aware of something',
+     ex:[['Stay mindful of your words and actions.','注意你的言行。'],['She is mindful of her health and diet.','她非常关注自己的健康和饮食。']]},
+    {w:'authentic', ph:'/ɔːˈθentɪk/', pos:'adj.', cn:'真实的，真诚的', en:'real and genuine; not copied, fake or artificial',
+     ex:[['Be authentic and people will trust you.','真诚待人，人们就会信任你。'],['His authentic smile won everyone over.','他真诚的笑容赢得了所有人的好感。']]}
+  ],
+  time: [
+    {w:'punctual', ph:'/ˈpʌŋktʃuəl/', pos:'adj.', cn:'准时的', en:'arriving or doing things at the expected or agreed time',
+     ex:[['She is always punctual for meetings.','她开会总是很准时。'],['Being punctual shows respect for others.','守时是对他人的尊重。']]},
+    {w:'procrastinate', ph:'/prəˈkræstɪneɪt/', pos:'v.', cn:'拖延', en:'to delay doing something that you should do',
+     ex:[['Do not procrastinate — start today.','别拖延了，今天就行动。'],['He procrastinated until the very last minute.','他一直拖到最后一刻。']]},
+    {w:'duration', ph:'/djuˈreɪʃn/', pos:'n.', cn:'持续时间', en:'the length of time that something lasts',
+     ex:[['The duration of the meeting is one hour.','会议时长为一小时。'],['Stay focused for the full duration of the task.','在任务全程保持专注。']]},
+    {w:'instant', ph:'/ˈɪnstənt/', pos:'adj./n.', cn:'立即的；瞬间', en:'happening immediately, without any delay',
+     ex:[['The app gives instant feedback on your answers.','这款应用会对答案即时反馈。'],['She wants instant results, but learning takes time.','她想要立竿见影的效果，但学习需要时间。']]},
+    {w:'eternal', ph:'/ɪˈtɜːnl/', pos:'adj.', cn:'永恒的', en:'lasting forever; without beginning or end',
+     ex:[['Some people believe true friendship is eternal.','有些人相信真挚的友谊是永恒的。'],['He pursued eternal truths through lifelong study.','他通过终身学习追寻永恒的真理。']]},
+    {w:'schedule', ph:'/ˈʃedjuːl/', pos:'n./v.', cn:'日程安排；安排', en:'a plan of things to be done and the time when they will be done',
+     ex:[['Check your schedule before booking the trip.','订行程前先确认一下日程。'],['She keeps a busy but balanced schedule.','她的日程很满但很均衡。']]},
+    {w:'overdue', ph:'/ˌəʊvəˈdjuː/', pos:'adj.', cn:'逾期的；迟到的', en:'not done or happening by the expected or agreed time',
+     ex:[['Your library books are two weeks overdue.','你的图书馆的书已经逾期两周了。'],['This task is overdue; please finish it today.','这个任务已经逾期，请今天完成。']]},
+    {w:'spontaneous', ph:'/spɒnˈteɪniəs/', pos:'adj.', cn:'自发的，即兴的', en:'done or happening naturally, without being planned',
+     ex:[['We took a spontaneous trip to the beach.','我们心血来潮去海边玩了一趟。'],['Her spontaneous idea made the party so much fun.','她即兴的想法让聚会格外有趣。']]},
+    {w:'milestone', ph:'/ˈmaɪlstəʊn/', pos:'n.', cn:'里程碑', en:'an important event or stage in the development of something',
+     ex:[['Graduation is a major milestone in life.','毕业是人生的重要里程碑。'],['Reaching 100 days is a milestone for your new habit.','坚持满 100 天是新习惯的一个重要里程碑。']]},
+    {w:'meanwhile', ph:'/ˈmiːnwaɪl/', pos:'adv.', cn:'与此同时', en:'at the same time as something else is happening',
+     ex:[['Meanwhile, the other team kept working on the design.','与此同时，另一个团队继续推进设计。'],['I cook dinner; meanwhile, he sets the table.','我做饭，与此同时他摆餐具。']]}
+  ]
+};
+
+/* ---------- 主题定义（含讨论话题） ---------- */
+const THEMES = [
+  {id:'life', name:'生活', icon:'sun', color:'#16A34A', soft:'#EAF7EF',
+   desc:'围绕日常起居、习惯与生活节奏，用地道词汇描述你的一天。',
+   qs:['Do you prefer a busy schedule or a relaxed pace of life? Why?',
+       'What small daily habit has made the biggest difference in your life? Give an example.']},
+  {id:'work', name:'工作', icon:'briefcase', color:'#4F6DF5', soft:'#EDF0FE',
+   desc:'聚焦职场沟通、效率与团队协作，练就工作中的实用表达。',
+   qs:['Is working from home better than working in the office? Why?',
+       'What matters more at work: efficiency or creativity? Support your opinion with an example.']},
+  {id:'philosophy', name:'哲理', icon:'compass', color:'#9333EA', soft:'#F3E8FF',
+   desc:'探讨人生观点与价值选择，用英语思考那些深刻的问题。',
+   qs:['What does "success" mean to you personally?',
+       'Is failure a necessary part of growth? Give a real example.']},
+  {id:'time', name:'时间', icon:'hourglass', color:'#EA8A00', soft:'#FFF4E3',
+   desc:'关于时间管理、拖延与节奏的思考，让英语学习与时间哲学同步。',
+   qs:['Do you think time management is more about discipline or motivation?',
+       'How do you usually deal with procrastination? Share a real example.']}
+];
+const themeById = id => THEMES.find(t => t.id === id) || THEMES[0];
+
+/* ---------- 工具函数 ---------- */
+const $ = id => document.getElementById(id);
+function dateKey(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return y+'-'+m+'-'+day; }
+function todayKey(){ return dateKey(new Date()); }
+function addDays(key,n){ const d=new Date(key+'T00:00:00'); d.setDate(d.getDate()+n); return dateKey(d); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtCN(key){ const d=new Date(key+'T00:00:00'); const wd=['日','一','二','三','四','五','六'][d.getDay()]; return (d.getMonth()+1)+'月'+d.getDate()+'日 周'+wd; }
+
+/* ---------- 数据层（localStorage） ---------- */
+const KEY='wb_enstudy_v1';
+let state = null;
+
+function defaultState(){ return {
+  config:{ rotation:'auto', manualTheme:'life' },
+  wordLog:[],   // {date, themeId, items:[{word,status}]}  status: new|learning|mastered
+  topicLog:[],  // {date, themeId, answers:{v,r,e}, submitted, submittedAt}
+  seeded:false
+};}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast('保存失败：存储空间不足'); } }
+function load(){
+  try{ const raw=localStorage.getItem(KEY); if(raw){ const d=JSON.parse(raw); if(d && d.wordLog && d.topicLog && d.config) return d; } }catch(e){}
+  return null;
+}
+
+/* ---------- 主题与每日任务生成 ---------- */
+function themeForDate(key, config){
+  if(config.rotation==='manual') return themeById(config.manualTheme);
+  const dayNum = Math.floor(new Date(key+'T00:00:00').getTime()/86400000);
+  return THEMES[Math.abs(dayNum) % THEMES.length];
+}
+function learnedWordsSet(){ const s=new Set(); state.wordLog.forEach(r=>r.items.forEach(i=>s.add(i.word))); return s; }
+
+function ensureToday(){
+  const tk = todayKey(), cfg = state.config;
+  // 主题
+  if(!state.topicLog.some(r=>r.date===tk)){
+    const th = themeForDate(tk, cfg);
+    state.topicLog.push({date:tk, themeId:th.id, answers:{v:'',r:'',e:''}, submitted:false, submittedAt:null});
+  }
+  // 单词
+  if(!state.wordLog.some(r=>r.date===tk)){
+    const th = themeForDate(tk, cfg);
+    const learned = learnedWordsSet();
+    let picked = [];
+    // 1) 本主题未学过的
+    WORDBANK[th.id].filter(x=>!learned.has(x.w)).forEach(x=>{ if(picked.length<5) picked.push(x.w); });
+    // 2) 其他主题未学过的
+    if(picked.length<5){ THEMES.forEach(t=>{ if(t.id!==th.id && picked.length<5){ WORDBANK[t.id].forEach(x=>{ if(!learned.has(x.w) && picked.length<5) picked.push(x.w); }); } }); }
+    // 3) 复习已学过的
+    if(picked.length<5){
+      const all = THEMES.reduce((a,t)=>a.concat(WORDBANK[t.id]),[]);
+      const rest = all.map(x=>x.w).filter(w=>!picked.includes(w));
+      while(picked.length<5 && rest.length) picked.push(rest.shift());
+    }
+    state.wordLog.push({date:tk, themeId:th.id, items:picked.map(w=>({word:w,status:'new'}))});
+  }
+}
+
+/* ---------- 示例数据（首次预置：含 1 条逾期） ---------- */
+function seedSamples(){
+  if(state.seeded) return;
+  const yk = addDays(todayKey(), -1);
+  const th = themeForDate(yk, state.config);
+  // 昨天主题练习：未提交 → 逾期
+  if(!state.topicLog.some(r=>r.date===yk)) state.topicLog.push({date:yk, themeId:th.id, answers:{v:'',r:'',e:''}, submitted:false, submittedAt:null});
+  // 昨天 3 个单词示例
+  if(!state.wordLog.some(r=>r.date===yk)){
+    const bank = WORDBANK[th.id];
+    const sample = bank.slice(0,3).map((x,i)=>({word:x.w, status:i===0?'mastered':'learning'}));
+    state.wordLog.push({date:yk, themeId:th.id, items:sample});
+  }
+  state.seeded = true;
+}
+
+/* ---------- 渲染：今日要处理 ---------- */
+function renderToday(){
+  const tk = todayKey();
+  const todayTopic = state.topicLog.find(r=>r.date===tk);
+  const todayWord  = state.wordLog.find(r=>r.date===tk);
+  const lateTopics = state.topicLog.filter(r=>r.date<tk && !r.submitted).sort((a,b)=>a.date<b.date?1:-1);
+  const lateWords  = state.wordLog.filter(r=>r.date<tk && r.items.some(i=>i.status==='new')).length;
+
+  const doneWords  = todayWord ? todayWord.items.filter(i=>i.status!=='new').length : 0;
+  const totalWords = todayWord ? todayWord.items.length : 5;
+  const topicDone  = !!todayTopic && todayTopic.submitted;
+
+  const items = [];
+  if(lateTopics.length){ // 逾期练习（红色）
+    items.push({overdue:true, icon:'alert', color:'#E5484D', soft:'#FDECED',
+      title:'有 '+lateTopics.length+' 个观点练习未完成（'+(lateTopics[0].date)+'）',
+      sub:'逾期未提交：'+lateTopics.map(r=>themeById(r.themeId).name).join('、'),
+      act:'speak:'+lateTopics[0].date, label:'去补做'});
+  }
+  if(lateWords){ // 逾期单词（红）
+    items.push({overdue:true, icon:'book', color:'#E5484D', soft:'#FDECED',
+      title:lateWords+' 天的单词未学完', sub:'昨日未完成自动顺延到今天，学完即可',
+      act:'words', label:'去学习'});
+  }
+  if(doneWords<totalWords){ // 今日单词
+    items.push({overdue:false, icon:'book', color:'#16A34A', soft:'#EAF7EF',
+      title:'今日单词 '+doneWords+'/'+totalWords+' 已学', sub:'每天至少 5 个新单词，与今日主题联动',
+      act:'words', label:'继续'});
+  }
+  if(!topicDone){ // 今日主题/练习
+    const thName = todayTopic?themeById(todayTopic.themeId).name:'—';
+    items.push({overdue:false, icon:'chat', color:'#4F6DF5', soft:'#EDF0FE',
+      title:'完成今日主题「'+thName+'」观点练习', sub:'按 观点→理由→例子 三段式表达',
+      act:'speak:'+tk, label:'去表达'});
+  } else {
+    items.push({overdue:false, icon:'check', color:'#16A34A', soft:'#EAF7EF',
+      title:'今日主题练习已完成', sub:'保持节奏，明天继续', go:null, label:''});
+  }
+
+  const listEl = $('todayList');
+  const badge = $('todayBadge');
+  const doneAll = lateTopics.length===0 && lateWords===0 && doneWords>=totalWords && topicDone;
+  if(doneAll){
+    badge.textContent='全部完成'; badge.style.background='#EAF7EF'; badge.style.color='#16A34A';
+    listEl.innerHTML = '<div class="all-done"><div class="ad-icon">'+icon('award')+'</div><b>今日任务已全部完成！</b><span>学完 '+totalWords+' 词 · 完成主题表达 · 坚持就是胜利</span></div>';
+  } else {
+    const n = items.filter(i=>i.overdue || i.label).length;
+    badge.textContent='还有 '+n+' 项待处理'; badge.style.background='#FFF4E3'; badge.style.color='#EA8A00';
+    listEl.innerHTML = items.filter(i=>i.overdue||i.label).map(it=>`
+      <div class="todo-item ${it.overdue?'overdue':''}">
+        <div class="t-icon" style="background:${it.soft};color:${it.color}">${icon(it.icon)}</div>
+        <div class="t-main">
+          <div class="t-title">${esc(it.title)}</div>
+          <div class="t-sub">${esc(it.sub)}</div>
+        </div>
+        ${it.act ? '<button class="t-go" style="background:${it.color}" data-act="'+it.act+'">'+icon('arrow')+esc(it.label)+'</button>' : ''}
+      </div>`).join('');
+    listEl.querySelectorAll('[data-act]').forEach(b=>{
+      b.addEventListener('click',()=>{
+        const act=b.dataset.act;
+        if(act.indexOf('speak:')===0){ openSpeak(act.slice(6)); }
+        else if(act==='words'){ scrollTo('wordCard'); }
+      });
+    });
+  }
+}
+
+/* ---------- 渲染：今日主题 ---------- */
+function renderTheme(){
+  const tk=todayKey();
+  const todayTopic=state.topicLog.find(r=>r.date===tk);
+  const th=themeById(todayTopic.themeId);
+  const cfg=state.config;
+  const body=$('themeBody');
+  const thName=cfg.rotation==='manual'?'固定主题':'自动轮换';
+  body.innerHTML = `
+    <div class="theme-hero">
+      <div class="theme-tag-row">
+        <span class="badge" style="background:${th.soft};color:${th.color}">${icon(th.icon)}${esc(th.name)}主题 · ${thName}</span>
+        ${todayTopic.submitted?'<span class="badge" style="background:#EAF7EF;color:#16A34A">'+icon('check')+'今日已完成</span>':'<span class="badge" style="background:#FFF4E3;color:#EA8A00">'+icon('clock')+'进行中</span>'}
+      </div>
+      <div class="theme-name">${esc(th.name)} · ${esc(fmtCN(tk))}</div>
+      <div class="theme-desc">${esc(th.desc)}</div>
+      <div class="theme-words" id="themeChips">${WORDBANK[th.id].map(w=>'<span class="word-chip">'+icon('book')+esc(w.w)+'</span>').join('')}</div>
+      <div class="theme-actions">
+        <button class="btn btn-primary" id="goWords" style="flex:1;max-width:200px">${icon('book')}学今日单词</button>
+        <button class="btn btn-soft" id="goSpeak" style="flex:1;max-width:200px">${icon('chat')}去练表达</button>
+      </div>
+    </div>`;
+  $('goWords').addEventListener('click',()=>scrollTo('wordCard'));
+  $('goSpeak').addEventListener('click',()=>openSpeak(tk));
+  // header strip
+  const words = state.wordLog.find(r=>r.date===tk);
+  const done = words?words.items.filter(i=>i.status!=='new').length:0;
+  $('tsTitle').textContent = '今日主题：'+th.name+' · 单词 '+done+'/'+(words?words.items.length:5);
+  $('tsSub').textContent = '每天 5 个新词 · 主题联动 · 三段式表达练习';
+}
+
+/* ---------- 渲染：每日单词 ---------- */
+function renderWords(){
+  const tk=todayKey();
+  const rec=state.wordLog.find(r=>r.date===tk);
+  const body=$('wordList');
+  if(!rec){ body.innerHTML='<div class="empty-tip">今日单词尚未生成</div>'; return; }
+  const done=rec.items.filter(i=>i.status!=='new').length;
+  $('wordCount').textContent = '已学 '+done+' / '+rec.items.length;
+  body.innerHTML = rec.items.map((it,idx)=>{
+    const d=findWord(it.word);
+    const stInfo={new:['st-new','待学','clock'],learning:['st-learning','学习中','zap'],mastered:['st-mastered','已掌握','check']}[it.status];
+    return `
+    <div class="word-item ${it.status==='mastered'?'done':''}" id="witem-${idx}">
+      <div class="word-head">
+        <span class="word">${esc(d.w)}</span>
+        <span class="word-phonetic">${esc(d.ph)}</span>
+        <span class="word-pos">${esc(d.pos)}</span>
+      </div>
+      <div class="word-cn">${esc(d.cn)}</div>
+      <div class="word-en">${esc(d.en)}</div>
+      <div class="word-ex">${d.ex.map(e=>'<div class="ex"><span class="ex-en">'+esc(e[0])+'</span><span class="ex-cn">'+esc(e[1])+'</span></div>').join('')}</div>
+      <div class="word-foot">
+        <span class="status-badge ${stInfo[0]}">${icon(stInfo[2])}${stInfo[1]}</span>
+        <div class="word-ops">
+          <button class="mini-btn" data-w="${esc(it.word)}" data-s="learning">${icon('refresh')}再练练</button>
+          <button class="mini-btn ok" data-w="${esc(it.word)}" data-s="mastered">${icon('check')}记住了</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  body.querySelectorAll('.mini-btn').forEach(b=>{
+    b.addEventListener('click',()=>{ setWordStatus(rec.date,b.dataset.w,b.dataset.s); });
+  });
+}
+function findWord(w){ for(const k in WORDBANK){ const f=WORDBANK[k].find(x=>x.w===w); if(f) return f; } return {w,ph:'',pos:'',cn:'',en:'',ex:[]}; }
+function setWordStatus(date, word, status){
+  const rec=state.wordLog.find(r=>r.date===date);
+  if(!rec) return;
+  const it=rec.items.find(i=>i.word===word);
+  if(it){ it.status=status; save(); renderWords(); renderTheme(); renderToday(); renderProgress(); }
+}
+
+/* ---------- 渲染：观点表达 ---------- */
+let speakDate = null;
+function openSpeak(date){
+  speakDate=date;
+  scrollTo('speakCard');
+  renderSpeak();
+}
+function renderSpeak(){
+  const tk=todayKey();
+  const lateTopics=state.topicLog.filter(r=>r.date<tk && !r.submitted).sort((a,b)=>b.date.localeCompare(a.date));
+  const allDates=[tk].concat(lateTopics.map(r=>r.date));
+  if(!speakDate || !allDates.includes(speakDate)) speakDate=tk;
+  const rec=state.topicLog.find(r=>r.date===speakDate);
+  const th=themeById(rec.themeId);
+  const isLate=speakDate!==tk;
+  const body=$('speakBody');
+
+  body.innerHTML = `
+    <div class="topic-tabs" id="topicTabs">
+      <button class="tab ${!isLate?'active':''}" data-d="${tk}">${icon('calendar')}今日 · ${esc(th.name)}</button>
+      ${lateTopics.map(r=>`<button class="tab late ${speakDate===r.date?'active':''}" data-d="${r.date}">${icon('alert')}${esc(fmtCN(r.date))}补做</button>`).join('')}
+    </div>
+    <div class="q-card">
+      <div class="q-num">${isLate?'逾期补练 · '+'TOPIC':'TODAY · TOPIC'}</div>
+      <div class="q-text">${esc(th.name)}：${esc(th.qs[0])}</div>
+      <div class="q-text" style="margin-top:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)">${esc(th.qs[1])}</div>
+    </div>
+    <div class="struc-bar">
+      <div class="struc-cell"><div class="s-step">① 观点 VIEWPOINT</div><div class="s-en">I believe that ...</div></div>
+      <div class="struc-cell arrow">${icon('arrow')}</div>
+      <div class="struc-cell"><div class="s-step">② 理由 REASON</div><div class="s-en">This is because ...</div></div>
+      <div class="struc-cell arrow">${icon('arrow')}</div>
+      <div class="struc-cell"><div class="s-step">③ 例子 EXAMPLE</div><div class="s-en">For instance, ...</div></div>
+    </div>
+    <div class="field">
+      <label>${icon('star')}观点 Viewpoint<span class="hint">模板：I believe that ... / In my opinion, ...</span></label>
+      <textarea id="inV" placeholder="用一句话亮明你的观点，如：In my opinion, a relaxed pace of life helps me stay focused.">${esc(rec.answers.v)}</textarea>
+    </div>
+    <div class="field">
+      <label>${icon('flag')}理由 Reason<span class="hint">模板：This is because ... / The main reason is ...</span></label>
+      <textarea id="inR" placeholder="给出 1-2 条支撑理由：This is because it reduces stress and improves my efficiency.">${esc(rec.answers.r)}</textarea>
+    </div>
+    <div class="field">
+      <label>${icon('edit')}例子 Example<span class="hint">模板：For instance, ... / A good example is ...</span></label>
+      <textarea id="inE" placeholder="用一个真实例子支撑：For instance, last year I started reading before bed, and I sleep much better.">${esc(rec.answers.e)}</textarea>
+    </div>
+    <div class="submit-row">
+      <button class="btn ${rec.submitted?'btn-soft':'btn-primary'}" id="btnSubmitSpeak">${icon(rec.submitted?'check':'upload')}${rec.submitted?'更新提交':'提交练习'}</button>
+      ${rec.submitted?'<span class="filled-note">'+icon('check')+'已提交 '+esc(rec.submittedAt||'')+'</span>':''}
+    </div>`;
+
+  $('topicTabs').querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{ speakDate=t.dataset.d; renderSpeak(); });
+  });
+  const onInput=()=>{ rec.answers.v=$('inV').value; rec.answers.r=$('inR').value; rec.answers.e=$('inE').value; save(); };
+  ['inV','inR','inE'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('input',onInput); });
+  $('btnSubmitSpeak').addEventListener('click',()=>{
+    const v=$('inV').value.trim(), r=$('inR').value.trim(), e=$('inE').value.trim();
+    if(!v){ toast('请先填写「观点」部分'); return; }
+    rec.answers={v,r,e}; rec.submitted=true; rec.submittedAt=fmtCN(todayKey())+' '+new Date().toTimeString().slice(0,5);
+    save();
+    toast('提交成功，已记录学习进度！');
+    renderSpeak(); renderToday(); renderTheme(); renderProgress();
+  });
+}
+
+/* ---------- 渲染：学习进度 ---------- */
+function renderProgress(){
+  const tk=todayKey();
+  const body=$('progBody');
+  const wordRecs=state.wordLog;
+  const topicRecs=state.topicLog;
+
+  const allItems=wordRecs.reduce((a,r)=>a.concat(r.items.map(i=>({word:i.word,status:i.status,date:r.date}))),[]);
+  const learned=allItems.filter(i=>i.status!=='new').length;
+  const mastered=allItems.filter(i=>i.status==='mastered').length;
+  const totalUnique=new Set(allItems.map(i=>i.word)).size;
+  const topicsDone=topicRecs.filter(r=>r.submitted).length;
+  const totalTopics=new Set(topicRecs.map(r=>r.date)).size||1;
+
+  // 连续天数（从今天向前，有活动记录的天）
+  let streak=0; let cursor=tk;
+  while(true){
+    const hasDay=wordRecs.some(r=>r.date===cursor && r.items.some(i=>i.status!=='new')) || topicRecs.some(r=>r.date===cursor && r.submitted);
+    if(hasDay){ streak++; cursor=addDays(cursor,-1); } else break;
+  }
+
+  // 今日完成度
+  const tw=wordRecs.find(r=>r.date===tk);
+  const tt=topicRecs.find(r=>r.date===tk);
+  const wDone=tw?tw.items.filter(i=>i.status!=='new').length/tw.items.length:0;
+  const tDone=tt&&tt.submitted?1:0;
+  const dayPct=Math.round((wDone*0.5 + tDone*0.5)*100);
+
+  // 最近 7 天热力
+  let heatHTML='';
+  for(let i=6;i>=0;i--){
+    const dk=addDays(tk,-i);
+    const hw=wordRecs.find(r=>r.date===dk); const ht=topicRecs.find(r=>r.date===dk);
+    let level=0;
+    if(hw||ht){
+      const hwd=hw?hw.items.filter(x=>x.status!=='new').length/hw.items.length:0;
+      const htd=ht&&ht.submitted?1:0;
+      level=Math.round((hwd*0.5+htd*0.5)*10); // 0-10
+    }
+    const cellColor = level===0 ? '#EEF0F7' : level<=3 ? '#C7D2FE' : level<=6 ? '#818CF8' : '#4F6DF5';
+    heatHTML += `<div class="heat"><span class="h-label">${fmtCN(dk).slice(0,2)}</span><div class="h-cell" style="background:${cellColor};color:${level===0?'var(--ink-3)':'#fff'}">${level===0?'·':level}</div></div>`;
+  }
+
+  const ringC=2*Math.PI*52, ringOff=ringC*(1-dayPct/100);
+
+  // 历史记录
+  const hist=wordRecs.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const histHTML=hist.length?hist.map(r=>{
+    const th=themeById(r.themeId);
+    const doneN=r.items.filter(i=>i.status!=='new').length;
+    const tRec=topicRecs.find(t=>t.date===r.date);
+    const sub=tRec&&tRec.submitted;
+    const statusTxt = sub?'<span class="badge" style="background:#EAF7EF;color:#16A34A">'+icon('check')+'练习已交</span>'
+                    : (r.date<tk?'<span class="badge" style="background:#FDECED;color:#E5484D">'+icon('alert')+'练习逾期</span>'
+                              :'<span class="badge" style="background:#FFF4E3;color:#EA8A00">'+icon('clock')+'待完成</span>');
+    return `<div class="his-row">
+      <div class="his-date">${esc(r.date)}</div>
+      <div class="his-theme">${esc(th.name)}主题<small>${esc(fmtCN(r.date))}</small></div>
+      <div class="his-words">${doneN}/${r.items.length} 词已学</div>
+      <div class="his-status">${statusTxt}</div>
+    </div>`;
+  }).join('') : '<div class="empty-tip">还没有学习记录，从今天开始吧！</div>';
+
+  body.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat"><div class="s-ico" style="background:var(--success-soft);color:var(--success)">${icon('book')}</div><div class="s-num">${learned}</div><div class="s-label">已学单词</div></div>
+      <div class="stat"><div class="s-ico" style="background:#EDF0FE;color:#4F6DF5">${icon('award')}</div><div class="s-num">${mastered}</div><div class="s-label">已掌握</div></div>
+      <div class="stat"><div class="s-ico" style="background:#F3E8FF;color:#9333EA">${icon('flag')}</div><div class="s-num">${topicsDone}/${totalTopics}</div><div class="s-label">主题完成</div></div>
+      <div class="stat"><div class="s-ico" style="background:var(--warn-soft);color:var(--warn)">${icon('trending')}</div><div class="s-num">${streak}</div><div class="s-label">连续天数</div></div>
+    </div>
+    <div class="prog-row">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="ring-fg" cx="60" cy="60" r="52" stroke-dasharray="${ringC.toFixed(1)}" stroke-dashoffset="${ringOff.toFixed(1)}"/>
+        </svg>
+        <div class="ring-center"><b>${dayPct}%</b><span>今日完成度</span></div>
+      </div>
+      <div class="prog-detail">
+        <div class="prog-line"><div class="pl-head"><span>今日单词</span><span class="pct">${Math.round(wDone*100)}%</span></div><div class="pbar"><i style="width:${Math.round(wDone*100)}%"></i></div></div>
+        <div class="prog-line"><div class="pl-head"><span>主题练习</span><span class="pct">${Math.round(tDone*100)}%</span></div><div class="pbar"><i style="width:${Math.round(tDone*100)}%"></i></div></div>
+        <div class="prog-line"><div class="pl-head"><span>累计词汇 ${totalUnique} 词</span><span class="pct">掌握率 ${totalUnique?Math.round(mastered/Math.max(totalUnique,1)*100):0}%</span></div><div class="pbar"><i style="width:${totalUnique?Math.round(mastered/totalUnique*100):0}%"></i></div></div>
+      </div>
+    </div>
+    <div class="heat-row">${heatHTML}</div>
+    <div class="history-list">${histHTML}</div>`;
+}
+
+/* ---------- 主题设置 Modal ---------- */
+function renderThemeModal(){
+  const cfg=state.config;
+  const auto=cfg.rotation==='auto';
+  $('pillAuto').classList.toggle('active',auto);
+  $('pillManual').classList.toggle('active',!auto);
+  $('themeSelRow').style.display=auto?'none':'flex';
+  const sel=$('selTheme');
+  sel.innerHTML=THEMES.map(t=>`<option value="${t.id}" ${t.id===cfg.manualTheme?'selected':''}>${t.name} · ${t.desc.slice(0,14)}…</option>`).join('');
+  document.querySelectorAll('input[name="rot"]').forEach(r=>{
+    r.checked=(r.value==='auto')===auto;
+    r.onchange=()=>{ $('pillAuto').classList.toggle('active',r.value==='auto'); $('pillManual').classList.toggle('active',r.value==='manual'); $('themeSelRow').style.display=r.value==='auto'?'none':'flex'; };
+  });
+}
+$('btnThemeSet').addEventListener('click',()=>{ renderThemeModal(); $('maskTheme').classList.add('show'); });
+$('btnThemeCancel').addEventListener('click',()=>$('maskTheme').classList.remove('show'));
+$('btnThemeSave').addEventListener('click',()=>{
+  const v=document.querySelector('input[name="rot"]:checked').value;
+  state.config.rotation=v;
+  state.config.manualTheme=$('selTheme').value;
+  save();
+  $('maskTheme').classList.remove('show');
+  ensureToday(); renderAll();
+  toast('主题设置已保存');
+});
+
+/* ---------- 导出 / 导入 / 清空 ---------- */
+$('btnExport').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='英语工作台备份-'+todayKey()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('已导出 JSON 备份');
+});
+$('btnImport').addEventListener('click',()=>$('fileImport').click());
+$('fileImport').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const d=JSON.parse(reader.result);
+      if(!d.wordLog || !d.topicLog || !d.config) throw new Error('bad');
+      state=d; save(); ensureToday(); renderAll();
+      toast('导入成功，已恢复 '+state.wordLog.length+' 天记录');
+    }catch(err){ toast('导入失败：文件格式不正确'); }
+    e.target.value='';
+  };
+  reader.readAsText(f);
+});
+
+/* 清空示例数据（二次确认） */
+let confirmAction=null;
+function askConfirm(title,iconName,desc,act){
+  $('cfIcon').innerHTML=icon(iconName);
+  $('cfWarn').textContent=title;
+  $('cfDesc').textContent=desc;
+  confirmAction=act;
+  $('maskConfirm').classList.add('show');
+}
+$('cfCancel').addEventListener('click',()=>$('maskConfirm').classList.remove('show'));
+$('cfOk').addEventListener('click',()=>{
+  $('maskConfirm').classList.remove('show');
+  if(confirmAction){ confirmAction(); confirmAction=null; }
+});
+$('btnClearSample').addEventListener('click',()=>{
+  askConfirm('确定清空示例数据？','alert','将移除预置的示例学习记录（昨天的那几条演示数据），今天的任务不受影响。','clearSample');
+});
+function clearSample(){
+  const tk=todayKey();
+  state.wordLog=state.wordLog.filter(r=>r.date===tk);
+  state.topicLog=state.topicLog.filter(r=>r.date===tk);
+  save(); renderAll();
+  toast('示例数据已清空');
+}
+$('btnWipe').addEventListener('click',()=>{
+  askConfirm('确定清空全部数据？','alert','将删除所有学习记录与设置（无法撤销）。建议先点击顶部「导出备份」留存数据。','wipeAll');
+});
+function wipeAll(){
+  state=defaultState(); state.seeded=true;
+  save(); ensureToday(); renderAll();
+  toast('已清空全部数据');
+}
+
+/* ---------- 滚动 / Toast ---------- */
+function scrollTo(id){ const el=$(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+let toastTimer=null;
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ---------- 主入口 ---------- */
+function renderAll(){
+  renderToday(); renderTheme(); renderWords(); renderSpeak(); renderProgress();
+  $('headerDate').textContent=fmtCN(todayKey())+' · 坚持每天一点点';
+  const d=themeById((state.topicLog.find(r=>r.date===todayKey())||{}).themeId||'life');
+  $('tsIcon').innerHTML=icon(d.icon);
+  ['todayIcon','themeIcon','wordIcon','speakIcon','progIcon'].forEach((id,i)=>{
+    const map=[['alert','#E5484D','#FDECED'],['sun',d.color,d.soft],['book','#16A34A','#EAF7EF'],['chat','#EA8A00','#FFF4E3'],['chart','#9333EA','#F3E8FF']];
+    const el=$(id); if(el){ el.style.background=map[i][2]; el.style.color=map[i][1]; el.innerHTML=icon(map[i][0]); }
+  });
+  // 数据积累提示
+  const total=state.wordLog.length;
+  if(total>=30 && !sessionStorage.getItem('wb_backup_tip')){
+    sessionStorage.setItem('wb_backup_tip','1');
+    setTimeout(()=>toast('数据已积累 '+total+' 天，建议导出备份'),600);
+  }
+}
+$('btnGoToday').addEventListener('click',()=>{ scrollTo('wordCard'); });
+
+(function init(){
+  const s=load();
+  if(s){ state=s; }
+  else{ state=defaultState(); seedSamples(); save(); }
+  ensureToday(); save();
+  renderAll();
+})();
+</script>
+</body>
+</html>
