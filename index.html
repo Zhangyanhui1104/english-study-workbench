@@ -213,6 +213,25 @@
 
   .footer{text-align:center;font-size:12px;color:var(--ink-3);padding:8px 16px 20px}
 
+  /* ===== 语音 + AI 工具 ===== */
+  .field-tools{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .field-tools .mini-btn{height:40px}
+  .field-tools .mini-btn svg{width:14px;height:14px}
+  .mini-btn.recording{background:var(--danger-soft);color:var(--danger);border-color:#F5C2C4}
+  .mini-btn.ai-loading{opacity:.6;pointer-events:none}
+  .ai-result{margin-top:10px}
+  .ai-card{border:1px solid #C7D2FE;background:#F5F7FF;border-radius:12px;padding:12px 14px}
+  .ai-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#4F6DF5;margin-bottom:8px}
+  .ai-head svg{width:15px;height:15px}
+  .ai-block{font-size:13.5px;line-height:1.7;margin-bottom:9px}
+  .ai-block b{display:block;color:var(--ink-2);font-size:12px;margin-bottom:2px}
+  .ai-block div{color:var(--ink);white-space:pre-wrap}
+  .ai-ops{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+  .ai-err{font-size:13px;color:var(--danger);background:var(--danger-soft);padding:10px 12px;border-radius:10px;line-height:1.6}
+  .ai-loading{font-size:13px;color:var(--primary);background:var(--primary-soft);padding:10px 12px;border-radius:10px;display:flex;align-items:center;gap:8px}
+  .ai-loading .spin{width:14px;height:14px;border:2px solid var(--primary);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
   /* ===== 响应式 ===== */
   @media (max-width:768px){
     .header{padding:20px 16px 18px}
@@ -329,6 +348,16 @@
       <button class="btn btn-soft" id="btnThemeCancel">取消</button>
       <button class="btn btn-primary" id="btnThemeSave">保存设置</button>
     </div>
+    <div class="ai-zone" style="border-top:1px solid var(--line);margin-top:18px;padding-top:16px">
+      <h4 style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700"><svg viewBox="0 0 24 24" fill="none" stroke="#9333EA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 13.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg>AI 纠错 / 优化（免费）</h4>
+      <p style="font-size:12.5px;color:var(--ink-3);margin-bottom:10px;line-height:1.6">语音识别免费内置；AI 纠错调用你自己的 <b>Gemini 免费 Key</b>（<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--primary)">aistudio.google.com/apikey</a> 免费申请）。Key 仅存你浏览器本地，不会上传。</p>
+      <div class="m-row" style="margin-bottom:10px">
+        <input type="password" id="aiKey" placeholder="粘贴 Gemini API Key（gho_...）" style="flex:1;min-width:180px;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px">
+      </div>
+      <div class="m-row" style="margin-bottom:6px">
+        <input type="text" id="aiModel" placeholder="模型（默认 gemini-1.5-flash）" style="flex:1;min-width:180px;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px">
+      </div>
+    </div>
     <div class="danger-zone">
       <h4>数据管理</h4>
       <p>清空全部学习数据将重置所有记录（无法撤销，请先导出备份）。</p>
@@ -384,7 +413,10 @@ const ICONS = {
   refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
   alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
   flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>',
-  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
+  stop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  sparkle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 13.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg>'
 };
 function icon(name){ return ICONS[name] || ICONS.star; }
 function mount(sel, name){ const el = document.getElementById(sel); if(el) el.innerHTML = icon(name); }
@@ -517,6 +549,7 @@ let state = null;
 
 function defaultState(){ return {
   config:{ rotation:'auto', manualTheme:'life' },
+  aiConfig:{ provider:'gemini', key:'', model:'gemini-1.5-flash' },
   wordLog:[],   // {date, themeId, items:[{word,status}]}  status: new|learning|mastered
   topicLog:[],  // {date, themeId, answers:{v,r,e}, submitted, submittedAt}
   seeded:false
@@ -724,6 +757,69 @@ function openSpeak(date){
   scrollTo('speakCard');
   renderSpeak();
 }
+/* ---------- 语音识别 + AI 纠错/优化 ---------- */
+let activeRecog=null;
+function setMicUI(targetId, recording){
+  const btn=document.querySelector('[data-mic="'+targetId+'"]');
+  if(!btn) return;
+  btn.classList.toggle('recording', recording);
+  btn.innerHTML = recording ? (icon('stop')+'停') : (icon('mic')+'说');
+}
+function toggleDictation(targetId){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast('当前环境不支持语音输入，请用 Chrome/Edge 或部署后的 https 链接'); return; }
+  if(activeRecog){ try{ activeRecog.stop(); }catch(_){} return; }
+  const recog=new SR();
+  recog.lang='en-US'; recog.interimResults=true; recog.continuous=false; recog.targetId=targetId;
+  const el=$(targetId);
+  recog.onresult=e=>{
+    let t='';
+    for(let i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) t+=e.results[i][0].transcript; }
+    if(t){ el.value=t.trim(); el.dispatchEvent(new Event('input')); }
+  };
+  recog.onerror=ev=>{ toast('语音识别：'+(ev.error||'出错')); activeRecog=null; setMicUI(targetId,false); };
+  recog.onend=()=>{ activeRecog=null; setMicUI(targetId,false); };
+  try{ recog.start(); activeRecog=recog; setMicUI(targetId,true); toast('请开始说英语…'); }
+  catch(err){ toast('无法启动麦克风（需授权）'); }
+}
+async function callGemini(key, model, prompt){
+  const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
+  const body={contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{corrected:{type:'STRING'},improved:{type:'STRING'},tips:{type:'STRING'}},required:['corrected','improved','tips']}}};
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){ let m=''; try{ const ej=await res.json(); m=ej.error&&ej.error.message||''; }catch(_){} throw new Error('HTTP '+res.status+(m?': '+m:'')); }
+  const j=await res.json();
+  const txt=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts[0].text;
+  if(!txt) throw new Error('模型返回为空');
+  let parsed; try{ parsed=JSON.parse(txt); }catch(_){ throw new Error('返回格式异常'); }
+  if(!parsed.corrected && !parsed.improved) throw new Error('无有效结果');
+  return parsed;
+}
+function aiResultHTML(targetId, r){
+  return '<div class="ai-card"><div class="ai-head">'+icon('sparkle')+' AI 建议（语法纠错 + 优化）</div>'
+    +'<div class="ai-block"><b>语法纠错</b><div>'+esc(r.corrected||'')+'</div></div>'
+    +'<div class="ai-block"><b>更地道 / 优化版</b><div>'+esc(r.improved||'')+'</div></div>'
+    +(r.tips?'<div class="ai-block"><b>改进点</b><div>'+esc(r.tips)+'</div></div>':'')
+    +'<div class="ai-ops"><button class="mini-btn ok" data-apply="corrected">用纠错版</button><button class="mini-btn ok" data-apply="improved">用优化版</button></div></div>';
+}
+async function aiCheck(targetId){
+  const cfg=state.aiConfig;
+  if(!cfg.key){ toast('请先在「主题设置」填写免费 Gemini Key'); $('btnThemeSet').click(); return; }
+  const el=$(targetId); const text=el.value.trim();
+  if(!text){ toast('请先说话或输入内容再检查'); return; }
+  const box=$('ai-'+targetId); box.style.display='block';
+  box.innerHTML='<div class="ai-loading"><span class="spin"></span>AI 正在分析…</div>';
+  const btn=document.querySelector('[data-ai="'+targetId+'"]'); if(btn) btn.classList.add('ai-loading');
+  try{
+    const prompt='You are a strict but friendly English teacher. Check the grammar, word choice, and fluency of the English sentence below. Return JSON only: {"corrected":"grammar-corrected version","improved":"more natural or advanced version","tips":"1-3 short bullet points in Chinese explaining the improvements"}. Sentence: '+text;
+    const r=await callGemini(cfg.key, cfg.model||'gemini-1.5-flash', prompt);
+    box.innerHTML=aiResultHTML(targetId, r);
+    box.querySelectorAll('[data-apply]').forEach(b=>{
+      b.addEventListener('click',()=>{ const v=r[b.dataset.apply]; if(v){ el.value=v; el.dispatchEvent(new Event('input')); toast('已应用'); } });
+    });
+  }catch(err){ box.innerHTML='<div class="ai-err">AI 调用失败：'+esc(err.message)+'<br>请确认 Key 有效、网络可访问 Google，且使用部署后的 https 链接。</div>'; }
+  finally{ if(btn) btn.classList.remove('ai-loading'); }
+}
+
 function renderSpeak(){
   const tk=todayKey();
   const lateTopics=state.topicLog.filter(r=>r.date<tk && !r.submitted).sort((a,b)=>b.date.localeCompare(a.date));
@@ -752,16 +848,31 @@ function renderSpeak(){
       <div class="struc-cell"><div class="s-step">③ 例子 EXAMPLE</div><div class="s-en">For instance, ...</div></div>
     </div>
     <div class="field">
-      <label>${icon('star')}观点 Viewpoint<span class="hint">模板：I believe that ... / In my opinion, ...</span></label>
-      <textarea id="inV" placeholder="用一句话亮明你的观点，如：In my opinion, a relaxed pace of life helps me stay focused.">${esc(rec.answers.v)}</textarea>
+      <label>${icon('star')}观点 Viewpoint<span class="hint">模板：I believe that ...</span></label>
+      <textarea id="inV" placeholder="点「说」用英语表达，或键盘输入：In my opinion, a relaxed pace of life helps me stay focused.">${esc(rec.answers.v)}</textarea>
+      <div class="field-tools">
+        <button class="mini-btn" data-mic="inV">${icon('mic')}说</button>
+        <button class="mini-btn" data-ai="inV">${icon('sparkle')}AI 纠错</button>
+      </div>
+      <div class="ai-result" id="ai-inV" style="display:none"></div>
     </div>
     <div class="field">
-      <label>${icon('flag')}理由 Reason<span class="hint">模板：This is because ... / The main reason is ...</span></label>
-      <textarea id="inR" placeholder="给出 1-2 条支撑理由：This is because it reduces stress and improves my efficiency.">${esc(rec.answers.r)}</textarea>
+      <label>${icon('flag')}理由 Reason<span class="hint">模板：This is because ...</span></label>
+      <textarea id="inR" placeholder="说或写支撑理由：This is because it reduces stress and improves my efficiency.">${esc(rec.answers.r)}</textarea>
+      <div class="field-tools">
+        <button class="mini-btn" data-mic="inR">${icon('mic')}说</button>
+        <button class="mini-btn" data-ai="inR">${icon('sparkle')}AI 纠错</button>
+      </div>
+      <div class="ai-result" id="ai-inR" style="display:none"></div>
     </div>
     <div class="field">
-      <label>${icon('edit')}例子 Example<span class="hint">模板：For instance, ... / A good example is ...</span></label>
-      <textarea id="inE" placeholder="用一个真实例子支撑：For instance, last year I started reading before bed, and I sleep much better.">${esc(rec.answers.e)}</textarea>
+      <label>${icon('edit')}例子 Example<span class="hint">模板：For instance, ...</span></label>
+      <textarea id="inE" placeholder="说或写真实例子：For instance, last year I started reading before bed, and I sleep much better.">${esc(rec.answers.e)}</textarea>
+      <div class="field-tools">
+        <button class="mini-btn" data-mic="inE">${icon('mic')}说</button>
+        <button class="mini-btn" data-ai="inE">${icon('sparkle')}AI 纠错</button>
+      </div>
+      <div class="ai-result" id="ai-inE" style="display:none"></div>
     </div>
     <div class="submit-row">
       <button class="btn ${rec.submitted?'btn-soft':'btn-primary'}" id="btnSubmitSpeak">${icon(rec.submitted?'check':'upload')}${rec.submitted?'更新提交':'提交练习'}</button>
@@ -773,6 +884,8 @@ function renderSpeak(){
   });
   const onInput=()=>{ rec.answers.v=$('inV').value; rec.answers.r=$('inR').value; rec.answers.e=$('inE').value; save(); };
   ['inV','inR','inE'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('input',onInput); });
+  body.querySelectorAll('[data-mic]').forEach(b=>b.addEventListener('click',()=>toggleDictation(b.dataset.mic)));
+  body.querySelectorAll('[data-ai]').forEach(b=>b.addEventListener('click',()=>aiCheck(b.dataset.ai)));
   $('btnSubmitSpeak').addEventListener('click',()=>{
     const v=$('inV').value.trim(), r=$('inR').value.trim(), e=$('inE').value.trim();
     if(!v){ toast('请先填写「观点」部分'); return; }
@@ -884,6 +997,9 @@ function renderThemeModal(){
     r.checked=(r.value==='auto')===auto;
     r.onchange=()=>{ $('pillAuto').classList.toggle('active',r.value==='auto'); $('pillManual').classList.toggle('active',r.value==='manual'); $('themeSelRow').style.display=r.value==='auto'?'none':'flex'; };
   });
+  const ai=$('aiKey'), am=$('aiModel');
+  if(ai) ai.value=state.aiConfig.key||'';
+  if(am) am.value=state.aiConfig.model||'';
 }
 $('btnThemeSet').addEventListener('click',()=>{ renderThemeModal(); $('maskTheme').classList.add('show'); });
 $('btnThemeCancel').addEventListener('click',()=>$('maskTheme').classList.remove('show'));
@@ -891,10 +1007,12 @@ $('btnThemeSave').addEventListener('click',()=>{
   const v=document.querySelector('input[name="rot"]:checked').value;
   state.config.rotation=v;
   state.config.manualTheme=$('selTheme').value;
+  state.aiConfig.key=($('aiKey').value||'').trim();
+  state.aiConfig.model=($('aiModel').value||'').trim()||'gemini-1.5-flash';
   save();
   $('maskTheme').classList.remove('show');
   ensureToday(); renderAll();
-  toast('主题设置已保存');
+  toast('设置已保存'+(state.aiConfig.key?'（AI Key 已就绪）':'（未填 AI Key，语音输入仍可用）'));
 });
 
 /* ---------- 导出 / 导入 / 清空 ---------- */
@@ -984,7 +1102,7 @@ $('btnGoToday').addEventListener('click',()=>{ scrollTo('wordCard'); });
 
 (function init(){
   const s=load();
-  if(s){ state=s; }
+  if(s){ state=s; if(!state.aiConfig) state.aiConfig={provider:'gemini',key:'',model:'gemini-1.5-flash'}; }
   else{ state=defaultState(); seedSamples(); save(); }
   ensureToday(); save();
   renderAll();
